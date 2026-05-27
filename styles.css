@@ -1,0 +1,86 @@
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+    font-family: sans-serif;
+}
+
+/* テーマ設定 */
+.theme-dark {
+    background-color: #000000;
+    color: #ffffff;
+}
+.theme-light {
+    background-color: #ffffff;
+    color: #000000;
+}
+
+#app-container {
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+}
+
+header, footer {
+    padding: 10px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: rgba(128, 128, 128, 0.1);
+    z-index: 10;
+}
+
+/* メイン画面：PCは横並び、スマホは縦並び */
+main {
+    flex: 1;
+    display: flex;
+    flex-direction: row;
+    position: relative;
+    overflow: hidden;
+}
+
+@media (max-width: 768px) {
+    main {
+        flex-direction: column;
+    }
+    #canvas-container, #paint-container {
+        width: 100% !important;
+        height: 50% !important;
+    }
+}
+
+#canvas-container, #paint-container {
+    width: 50%;
+    height: 100%;
+    position: relative;
+    outline: 1px solid rgba(128, 128, 128, 0.3);
+}
+
+canvas {
+    width: 100%;
+    height: 100%;
+    display: block;
+}
+
+#webcam {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    width: 120px;
+    height: 90px;
+    border-radius: 8px;
+    transform: scaleX(-1); /* 鏡面 */
+    background: #000;
+}
+
+/* UIパーツの軽量化スタイル */
+.btn, .btn-rec {
+    padding: 8px 16px;
+    border: none;
+    cursor: pointer;
+    border-radius: 4px;
+    font-weight: bold;
+}
+.btn { background: #333; color: #fff; }
+.btn-rec { background: #ff3333; color: #fff; }
+.btn:hover, .btn-rec:hover { opacity: 0.8; }
