@@ -3,64 +3,94 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Live2D Ultra PWA App</title>
-    <link rel="stylesheet" href="styles.css">
-    <link rel="manifest" href="manifest.json">
-    <script src="https://cubism.live2d.com/sdk-web/bin/cubismcore/live2dcubismcore.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
-</head>
-<body class="theme-dark">
-
-    <div id="app-container">
-        
-        <header>
-            <select id="lang-selector">
-                <option value="ja">日本語</option>
-                <option value="en">English</option>
-                <option value="ko">한국어</option>
-                <option value="zh">中文</option>
-            </select>
-            <button id="theme-toggle">Toggle Theme (Black/White)</button>
-            <div class="file-inputs">
-                <label for="file-loader" class="btn">モデル読み込み (.json/.zip)</label>
-                <input type="file" id="file-loader" multiple accept=".json,.zip,.moc3,.cfg">
-            </div>
-        </header>
-
-        <main>
-            <div id="canvas-container">
-                <canvas id="live2d-canvas"></canvas>
-                <video id="webcam" autoplay playsinline muted></video>
-            </div>
-
-            <div id="paint-container">
-                <div class="paint-tools">
-                    <input type="color" id="brush-color" value="#ffffff">
-                    <input type="range" id="brush-size" min="1" max="50" value="5">
-                    <button id="clear-canvas">Clear</button>
-                </div>
-                <canvas id="paint-canvas"></canvas>
-            </div>
-        </main>
-
-        <footer>
-            <button id="btn-mocap" class="btn">Mocap Start/Stop</button>
-            <button id="btn-record" class="btn-rec">Rec Start (Background Mode)</button>
-            <button id="btn-export" class="btn">途中書き出し (Export State)</button>
-        </footer>
-    </div>
-
-    <script src="app.js"></script>
-    <script src="live2d-core.js"></script>
-    <script src="paint.js"></script>
-    <script src="mocap.js"></script>
-    <script src="recorder.js"></script>
-    <script>
-        // PWA Service Workerの登録
-        if ('serviceWorker' in navigator) {
-            navigator.serviceWorker.register('sw.js')
-                .then(() => console.log('Service Worker Registered'));
+    <title>Live2D Web Site</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            background-color: #f0f2f5; /* Webサイトの背景色 */
+            overflow: hidden;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
         }
+        #live2d-canvas {
+            width: 100vw;
+            height: 100vh;
+            display: block;
+        }
+    </style>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pixi.js/6.5.10/pixi.min.js"></script>
+    
+    <script src="https://cubism.live2d.com/sdk-web/cubismcore/live2dcubismcore.min.js"></script>
+    
+    <script src="https://cdn.jsdelivr.net/npm/pixi-live2d-display/dist/index.min.js"></script>
+</head>
+<body>
+
+    <canvas id="live2d-canvas"></canvas>
+
+    <script>
+        // プラグインが内部でPixiJSを参照できるようにグローバルに紐付け
+        window.PIXI = PIXI;
+
+        async function initLive2D() {
+            const canvas = document.getElementById('live2d-canvas');
+
+            // PixiJS アプリケーションの初期化
+            const app = new PIXI.Application({
+                view: canvas,
+                autoStart: true,
+                resizeTo: window,
+                transparent: true, // 背景を透明にしてWebサイトに馴染ませる
+                antialias: true
+            });
+
+            // ⚠️【設定】あなたのLive2Dモデルの「.model3.json」へのパスを指定してください
+            const modelUrl = './assets/Hiyori/Hiyori.model3.json'; 
+
+            try {
+                // モデルの非同期読み込み
+                const model = await PIXI.live2d.Live2DModel.from(modelUrl);
+                
+                // 画面（ステージ）にモデルを追加
+                app.stage.addChild(model);
+
+                // 配置とサイズの設定（画面中央に配置）
+                model.x = window.innerWidth / 2;
+                model.y = window.innerHeight / 2;
+                model.anchor.set(0.5);
+                
+                // 💡モデルの大きさに応じて数値を微調整してください（0.1 〜 0.5 あたり）
+                model.scale.set(0.25); 
+
+                // ウィンドウサイズが変更されたら位置をリサイズ
+                window.addEventListener('resize', () => {
+                    model.x = window.innerWidth / 2;
+                    model.y = window.innerHeight / 2;
+                });
+
+                // マウス追従（目線がカーソルを追う設定）を有効化
+                // （※モデル側で視線追従のパラメータが設定されている必要があります）
+                model.interactive = true;
+
+                // タップ（クリック）されたときのアクション設定
+                model.on('hit', (hitAreas) => {
+                    // 体（body）がタップされたら「tap_body」モーションを再生
+                    if (hitAreas.includes('body')) {
+                        model.motion('tap_body');
+                    }
+                });
+
+            } catch (error) {
+                console.error('Live2Dモデルの読み込みに失敗しました。パスが正しいか、ローカルサーバーが起動しているか確認してください。', error);
+            }
+        }
+
+        // ページが完全に読み込まれたら実行
+        window.onload = initLive2D;
     </script>
 </body>
 </html>
